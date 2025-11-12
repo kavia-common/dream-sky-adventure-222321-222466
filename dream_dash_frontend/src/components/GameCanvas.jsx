@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import useInput from '../hooks/useInput';
 import useGameLoop from '../hooks/useGameLoop';
 import { clamp, rand, dist } from '../utils/math';
@@ -71,7 +71,20 @@ export default function GameCanvas({ running, onScore, onTick, logger }) {
   useEffect(() => {
     resize();
     window.addEventListener('resize', resize);
-    const detachTouches = input.attachTouchZones(rootRef.current);
+
+    // Ensure the game area can receive keyboard focus
+    const root = rootRef.current;
+    if (root) {
+      // Make it focusable if not already
+      if (!root.hasAttribute('tabindex')) {
+        root.setAttribute('tabindex', '0');
+      }
+      // Autofocus on mount so keys work immediately
+      root.focus({ preventScroll: true });
+    }
+
+    const detachTouches = input.attachTouchZones(root);
+
     return () => {
       window.removeEventListener('resize', resize);
       detachTouches?.();
@@ -339,7 +352,14 @@ export default function GameCanvas({ running, onScore, onTick, logger }) {
 
   // Render layered canvases and touch zones
   return (
-    <div ref={rootRef} className="canvas-root" style={{ position: 'relative', width: '100%', height: '100%' }} aria-label="Game canvas">
+    <div
+      ref={rootRef}
+      className="canvas-root"
+      style={{ position: 'relative', width: '100%', height: '100%' }}
+      aria-label="Game canvas"
+      role="region"
+      tabIndex={0}
+    >
       <canvas ref={bgRef} className="canvas-layer" aria-hidden="true" />
       <canvas ref={midRef} className="canvas-layer" aria-hidden="true" />
       <canvas ref={plyRef} className="canvas-layer" aria-hidden="true" />
