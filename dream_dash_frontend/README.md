@@ -9,14 +9,18 @@ A lightweight React game prototype with layered Canvas rendering and Ocean Profe
 
 ## Controls
 
-- Keyboard:
+- Keyboard (focus the game area first by clicking inside it if keys don't respond):
   - Move Left: ArrowLeft or A
   - Move Right: ArrowRight or D
-  - Jump: Space or ArrowUp (debounced)
+  - Jump: Space or ArrowUp or W (debounced)
 - Touch:
   - Left half: move left
   - Right half: move right
   - Bottom band: jump (tap)
+
+Notes:
+- Arrow keys and Space are prevented from scrolling the page while the game root is focused.
+- WASD keys are supported as a fallback for movement and jumping.
 
 ## Features
 

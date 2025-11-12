@@ -27,6 +27,7 @@ export default function GameCanvas({ running, onScore, onTick, logger }) {
   const uiRef = useRef(null);
   const rootRef = useRef(null);
 
+  // Device pixel ratio is captured once; canvases are sized via resize()
   const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
   const targetAspect = 16 / 9;
 
@@ -61,10 +62,17 @@ export default function GameCanvas({ running, onScore, onTick, logger }) {
     [bgRef, midRef, plyRef, uiRef].forEach((r) => {
       const c = r.current;
       if (!c) return;
+      // CSS pixel size
       c.style.width = `${width}px`;
       c.style.height = `${height}px`;
+      // Backing store size (DPR-aware)
       c.width = Math.floor(width * dpr);
       c.height = Math.floor(height * dpr);
+      // Ensure crisp scaling
+      const ctx = c.getContext('2d');
+      if (ctx) {
+        ctx.setTransform(1, 0, 0, 1, 0, 0); // reset any previous transforms
+      }
     });
   }, [dpr]);
 
@@ -72,8 +80,10 @@ export default function GameCanvas({ running, onScore, onTick, logger }) {
     resize();
     window.addEventListener('resize', resize);
 
-    // Ensure the game area can receive keyboard focus
+    // Ensure the game area can receive keyboard focus and handle key events
     const root = rootRef.current;
+    let detachTouches = null;
+
     if (root) {
       // Make it focusable if not already
       if (!root.hasAttribute('tabindex')) {
@@ -81,10 +91,28 @@ export default function GameCanvas({ running, onScore, onTick, logger }) {
       }
       // Autofocus on mount so keys work immediately
       root.focus({ preventScroll: true });
+
+      // Attach touch zones handlers to the focused root
+      detachTouches = input.attachTouchZones(root);
+
+      // Key handlers bound to the root so focus confines events to the game
+      const preventScrollKeys = (e) => {
+        // Prevent scrolling with arrows/space while the game is focused
+        if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+          e.preventDefault();
+        }
+      };
+      root.addEventListener('keydown', preventScrollKeys, { passive: false });
+
+      // Cleanup
+      return () => {
+        window.removeEventListener('resize', resize);
+        detachTouches?.();
+        root.removeEventListener('keydown', preventScrollKeys);
+      };
     }
 
-    const detachTouches = input.attachTouchZones(root);
-
+    // Fallback cleanup if root is missing
     return () => {
       window.removeEventListener('resize', resize);
       detachTouches?.();
@@ -125,8 +153,12 @@ export default function GameCanvas({ running, onScore, onTick, logger }) {
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   };
 
-  const toPx = useCallback((u) => {
-    // logical world (w,h) -> canvas pixels
+  // PUBLIC_INTERFACE
+  const toPx = useCallback(() => {
+    /**
+     * Convert logical world units (w,h) to canvas pixels based on the player canvas backing size.
+     * Returns { sx, sy } scaling factors.
+     */
     const w = worldRef.current;
     const cx = plyRef.current?.width || 0;
     const cy = plyRef.current?.height || 0;
@@ -152,7 +184,7 @@ export default function GameCanvas({ running, onScore, onTick, logger }) {
 
     w.player.vx = clamp(w.player.vx, -maxVx, maxVx);
 
-    // Jump
+    // Jump (edge-triggered)
     if (input.consumeJump && input.consumeJump()) {
       if (w.player.onGround) {
         w.player.vy = jumpVy;
@@ -236,7 +268,7 @@ export default function GameCanvas({ running, onScore, onTick, logger }) {
   const draw = useCallback(() => {
     const w = worldRef.current;
     const { bg, mid, ply, ui } = getCtxs();
-    const { sx, sy } = toPx(1);
+    const { sx, sy } = toPx();
 
     // Background sky + clouds
     if (bg) {
