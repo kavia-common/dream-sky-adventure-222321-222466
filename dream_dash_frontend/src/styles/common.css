@@ -1,0 +1,62 @@
+/* Common design system variables (placeholder until design_system.yaml is supplied) */
+:root {
+  /* Colors (example defaults; to be replaced from design_system.colors) */
+  --color-ffffff: #ffffff;
+  --color-000000: #000000;
+  --color-primary: #e53e3e;
+  --color-secondary: #38a169;
+
+  /* Typography tokens (placeholder) */
+  --typo-0-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --typo-0-size: 16px;
+  --typo-0-weight: 400;
+  --typo-0-line-height: 1.4;
+  --typo-0-letter-spacing: 0;
+  --typo-0-align: left;
+  --typo-0-color: var(--color-000000);
+
+  /* Spacing (placeholder) */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  /* Shadows (placeholder) */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+  --shadow-lg: 0 10px 20px rgba(0,0,0,0.15);
+
+  /* Example style placeholders (from design_system.styles) */
+  --style-0-background-color: var(--color-ffffff);
+  --style-0-border-radius: 0px;
+  --style-0-border: 0 solid transparent;
+  --style-0-box-shadow: none;
+  --style-0-opacity: 1;
+}
+
+/* Base reset used for all screens */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--color-ffffff);
+  color: var(--color-000000);
+  font-family: var(--typo-0-family);
+  line-height: var(--typo-0-line-height);
+}
+
+/* Utility classes that screens can reuse */
+.u-shadow-sm { box-shadow: var(--shadow-sm); }
+.u-shadow-md { box-shadow: var(--shadow-md); }
+.u-shadow-lg { box-shadow: var(--shadow-lg); }
+.u-rounded { border-radius: var(--style-0-border-radius); }
+.u-bg-primary { background-color: var(--color-primary); }
+.u-bg-secondary { background-color: var(--color-secondary); }
+.u-text-primary { color: var(--color-primary); }
+.u-text-secondary { color: var(--color-secondary); }
